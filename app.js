@@ -2,6 +2,8 @@
 'use strict';
 
 const DEFAULT_DATA = 'gtd-data.js';   // 與 index.html 同一個資料夾
+// 線上 DEMO（GitHub Pages）：讀 demo-data.js 的範例，不連結、不寫任何檔案。本機測試可加 ?demo=1
+const DEMO = /\.github\.io$/.test(location.hostname) || new URLSearchParams(location.search).get('demo') === '1';
 const LANE_H = 26;
 const WD = ['一', '二', '三', '四', '五', '六', '日'];
 // 色盤排成三列：[色名, 中文名, 色碼]；null 代表「無色」按鈕
@@ -57,7 +59,7 @@ let data = { weeks: DEFAULT_WEEKS, items: [] };
 let persistedWeeks = DEFAULT_WEEKS;   // 已寫進檔案的週數；滑桿改了還沒按存檔鈕時，和 data.weeks 不同
 let viewStart = mondayOf(new Date());
 let seq = 0;
-let link = 'none';          // none | ok | needperm | unsupported
+let link = 'none';          // none | ok | needperm | unsupported | mismatch | demo
 let handle = null;
 let statusText = '', statusBad = false;
 let adding = null;          // 正在新增事項的日期
@@ -152,6 +154,7 @@ async function idbSet(k, v) {
 let saveTimer = null;
 function save() {
   if (isLocked()) { statusText = '已鎖定，未存檔'; statusBad = true; renderStatus(); return; }
+  if (link === 'demo') { statusText = 'DEMO：改動不會儲存'; statusBad = false; renderStatus(); return; }
   statusText = link === 'ok' ? '儲存中…' : '未存檔'; statusBad = link !== 'ok';
   renderStatus();
   clearTimeout(saveTimer);
@@ -350,6 +353,7 @@ function renderCryptUI() {
   const t = $('encToggle');
   t.checked = crypt.mode !== 'off';
   t.disabled = isLocked();
+  t.closest('label').hidden = DEMO;   // DEMO 不提供加密
   document.body.classList.toggle('locked', isLocked());
 }
 // 加密關閉時，「enc:」開頭保留給密文使用，避免下次載入被誤判成密文
@@ -444,7 +448,11 @@ function renderBanner() {
   }
   if (link === 'ok') { b.hidden = true; return; }
   b.hidden = false;
-  if (link === 'mismatch') {
+  if (link === 'demo') {
+    b.appendChild(h('span', { text: '線上 DEMO：可以隨意新增、拖曳、改色、復原，改動不會儲存，重新整理即還原；要保存請按右下角「下載備份」。' }));
+    const a = h('a', { href: 'https://github.com/YuanData/GTDCalendar', target: '_blank', rel: 'noopener', text: '原始碼' });
+    b.appendChild(a);
+  } else if (link === 'mismatch') {
     b.appendChild(h('span', { text: '已連結的檔案內容，和 index.html 同資料夾的 gtd-data.js 不一致，可能連到別的位置（例如舊的 Downloads 檔）。為避免寫錯地方，已暫停存檔。' }));
     b.appendChild(btn('改選檔案', pickExisting));
   } else if (link === 'needperm') {
@@ -756,7 +764,7 @@ async function boot(raw) {
   data = load(raw); persistedWeeks = data.weeks; clearHistory(); detectCrypt();
   renderAll();
   if (crypt.mode === 'locked') { await askUnlock(); renderAll(); }
-  await initLink();
+  if (DEMO) { link = 'demo'; statusText = 'DEMO：改動不會儲存'; } else await initLink();
   renderAll();
 }
 function loadScript(src) {
@@ -767,6 +775,19 @@ function loadScript(src) {
   });
 }
 (async () => {
+  if (DEMO) {
+    const ok = await loadScript('demo-data.js');
+    const today = new Date(), demo = ok && window.GTD_DEMO;
+    boot(demo && {
+      weeks: demo.weeks,
+      items: demo.items.map(({ d, end, ...rest }) => {
+        const it = { ...rest, date: fmt(addDays(today, d)) };
+        if (end !== undefined) it.end = fmt(addDays(today, end));
+        return it;
+      }),
+    });
+    return;
+  }
   const params = new URLSearchParams(location.search);
   await loadScript(params.get('naisho') || 'naisho.js');   // 沒有這個檔案也沒關係，視為沒有密鑰
   const ok = await loadScript(params.get('data') || DEFAULT_DATA);

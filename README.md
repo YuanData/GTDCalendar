@@ -2,6 +2,15 @@
 
 純 HTML／CSS／JS 的個人待辦月曆，不需要安裝或啟動任何伺服器。用 Chrome 或 Edge 直接開 `index.html`。
 
+## 線上 DEMO
+
+部署在 GitHub Pages：<https://yuandata.github.io/GTDCalendar/>。
+
+- 網址在 `*.github.io`（或帶 `?demo=1`）時自動進入 DEMO 模式：讀 `demo-data.js` 的範例，日期以「與今天相差幾天」表示，所以範例永遠落在目前這幾週。
+- DEMO 不連結、不寫任何檔案，也沒有加密開關；新增、拖曳、改色、復原都能試，重新整理即還原，要保存請按「下載備份」。
+- 本機用 `file://` 開 `index.html` 時行為不變。本機預覽 DEMO：在專案資料夾執行 `python -m http.server 8080`，開 `http://localhost:8080/?demo=1`。
+- 個人資料檔 `gtd-data.js` 與密鑰 `naisho.js` 在 `.gitignore`，不會上傳。
+
 ## 使用
 
 1. 開啟 `index.html`。
