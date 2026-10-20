@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GTD 月曆</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="banner" hidden></div>
+<main>
+  <div class="wd" id="wd"></div>
+  <div id="grid"></div>
+</main>
+<header id="top">
+  <div class="side">
+    <button id="undo" type="button" class="icon" aria-label="復原" disabled>&#x21B6;</button>
+    <button id="redo" type="button" class="icon" aria-label="重做" disabled>&#x21B7;</button>
+    <label class="enc" title="開啟後事項文字會加密存檔"><input id="encToggle" type="checkbox"><span class="track"></span>加密</label>
+  </div>
+  <div class="nav">
+    <button id="prevMonth" title="往前一個月">«月</button>
+    <button id="prevWeek" title="往前一週">‹週</button>
+    <button id="today" title="回到本週">回到今天</button>
+    <button id="nextWeek" title="往後一週">週›</button>
+    <button id="nextMonth" title="往後一個月">月»</button>
+  </div>
+  <div class="right">
+    <label class="wk">顯示 <input id="weeks" type="range" min="3" max="8" step="1"> <span id="weeksVal"></span> 週<button id="saveWeeks" type="button" class="icon" title="儲存週數" aria-label="儲存週數" style="visibility:hidden">&#x1F4BE;</button></label>
+    <button id="download" title="下載目前資料檔（備援）">下載備份</button>
+    <span id="status"></span>
+  </div>
+</header>
+
+<div id="pal" hidden></div>
+<div id="toast" role="status"></div>
+
+<dialog id="dlg">
+  <form method="dialog" id="dlgForm">
+    <h3>編輯事項</h3>
+    <label>內容 <input id="dText" type="text" required></label>
+    <label>起始日 <input id="dDate" type="date" required></label>
+    <label>結束日（留空＝單日事項） <input id="dEnd" type="date"></label>
+    <label class="chkline"><input id="dStrike" type="checkbox"> 刪除線</label>
+    <p id="dErr" class="err" hidden></p>
+    <div class="btns">
+      <button value="cancel" formnovalidate>取消</button>
+      <button value="ok" id="dOk">儲存</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="kdlg">
+  <form method="dialog" id="kForm">
+    <h3 id="kTitle"></h3>
+    <p id="kHint" class="hint"></p>
+    <label>密鑰 <input id="kPass" type="password" autocomplete="off"></label>
+    <label id="kConfirmRow">再輸入一次 <input id="kPass2" type="password" autocomplete="off"></label>
+    <p id="kErr" class="err" hidden></p>
+    <div class="btns">
+      <button value="cancel" formnovalidate>取消</button>
+      <button value="ok" id="kOk">確定</button>
+    </div>
+  </form>
+</dialog>
+
+<script src="cipher.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

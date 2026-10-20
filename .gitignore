@@ -1,0 +1,15 @@
+# 個人資料（實際資料檔放在 Downloads，這裡只是保險）
+gtd-data.js
+data.json
+/test-data/
+
+# 編輯器／系統／快取
+.vscode/
+.idea/
+__pycache__/
+*.pyc
+.DS_Store
+Thumbs.db
+
+# 加密密鑰
+naisho.js
