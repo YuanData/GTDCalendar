@@ -63,8 +63,9 @@ body { padding-top: 12px; }
 .tools button:hover { background: #fff; border-color: var(--border); }
 .tools .dot { width: 18px; padding: 0; border-radius: 50%; border: 1px solid rgba(0, 0, 0, .2); background: var(--c, #fff); }
 
-.addbtn { border: none; background: none; color: var(--muted); padding: 0 6px; line-height: 20px; opacity: .5; }
+.addbtn { border: none; background: none; color: var(--muted); padding: 0 6px; line-height: 20px; opacity: 0; }
 .day:hover .addbtn { opacity: 1; }
+.day:hover .dlabel { background: rgba(0, 0, 0, .06); }
 .add-in { width: 100%; border: 1px solid var(--accent); border-radius: 4px; padding: 2px 4px; background: #fff; }
 
 .span { z-index: 2; margin: 1px 3px; display: flex; align-items: center; gap: 4px; padding: 0 6px; border-radius: 6px; background: var(--c); border: 2px solid color-mix(in srgb, var(--c), black 30%); cursor: grab; overflow: hidden; color: var(--text); }
@@ -88,8 +89,6 @@ dialog .btns { display: flex; justify-content: flex-end; gap: 8px; margin-top: 1
 .err { color: #C0554D; margin: 4px 0 0; }
 .err[hidden] { display: none; }
 
-.dlabel:hover { background: rgba(0, 0, 0, .05); }
-.dlabel:hover .addbtn { opacity: 1; }
 .addbtn { pointer-events: none; }
 
 #pal .sw { display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 700; color: #363635; }
