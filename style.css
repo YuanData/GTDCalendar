@@ -129,7 +129,8 @@ body.locked #grid { pointer-events: none; }
 dialog .hint { margin: 0 0 6px; color: var(--muted); font-size: 13px; }
 dialog .hint:empty { display: none; }
 
-.dlabel .hol { justify-self: end; color: #D32F2F; font-size: 12px; overflow: visible; }
+.dlabel { position: relative; }
+.dlabel .hol { position: absolute; left: 0; right: 0; text-align: center; pointer-events: none; color: #D32F2F; font-size: 12px; }
 .day.past .hol { opacity: .45; }
 .dlabel .addbtn { position: relative; z-index: 1; }
 #holidayBtn.on { color: #D32F2F; border-color: #D32F2F; }
