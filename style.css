@@ -128,3 +128,8 @@ body.locked #grid { pointer-events: none; }
 #kConfirmRow[hidden] { display: none; }
 dialog .hint { margin: 0 0 6px; color: var(--muted); font-size: 13px; }
 dialog .hint:empty { display: none; }
+
+.dlabel .hol { justify-self: end; color: #D32F2F; font-size: 12px; overflow: visible; }
+.day.past .hol { opacity: .45; }
+.dlabel .addbtn { position: relative; z-index: 1; }
+#holidayBtn.on { color: #D32F2F; border-color: #D32F2F; }

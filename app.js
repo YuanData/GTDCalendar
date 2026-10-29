@@ -468,13 +468,62 @@ function renderBanner() {
   }
 }
 
+// ---- 國定假日（TaiwanCalendar），只快取 isHoliday=true 的日期 ----
+const HOLIDAY_URL = y => 'https://cdn.jsdelivr.net/gh/ruyut/TaiwanCalendar/data/' + y + '.json';
+const HOLIDAY_CACHE_KEY = 'gtd-holidays-v1';
+const HOLIDAY_SHOW_KEY = 'gtd-holidays-show';
+const HOLIDAY_SEED_YEARS = [2026, 2027];
+let holidayCache = {};            // { 年: { 'YYYY-MM-DD': 說明 } }
+let showHolidays = true;
+const holidayBusy = new Set(), holidayFailed = new Set();
+try { holidayCache = JSON.parse(localStorage.getItem(HOLIDAY_CACHE_KEY)) || {}; } catch (e) { holidayCache = {}; }
+try { showHolidays = localStorage.getItem(HOLIDAY_SHOW_KEY) !== '0'; } catch (e) {}
+
+function parseHolidays(year, json) {
+  if (!Array.isArray(json)) throw new Error('內容不是陣列');
+  const out = {};
+  json.forEach((r, i) => {
+    if (!r || !/^\d{8}$/.test(r.date) || typeof r.isHoliday !== 'boolean') throw new Error('第 ' + (i + 1) + ' 筆格式不符');
+    if (r.date.slice(0, 4) !== String(year)) throw new Error('第 ' + (i + 1) + ' 筆年份不是 ' + year);
+    if (r.isHoliday && r.description) out[r.date.slice(0, 4) + '-' + r.date.slice(4, 6) + '-' + r.date.slice(6)] = String(r.description);
+  });
+  return out;
+}
+async function loadHolidayYear(year) {
+  if (holidayCache[year] || holidayBusy.has(year) || holidayFailed.has(year)) return;
+  holidayBusy.add(year);
+  try {
+    const res = await fetch(HOLIDAY_URL(year));
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    holidayCache[year] = parseHolidays(year, await res.json());
+    try { localStorage.setItem(HOLIDAY_CACHE_KEY, JSON.stringify(holidayCache)); } catch (e) {}
+    render();
+  } catch (err) {
+    holidayFailed.add(year);
+    toast(year + ' 年國定假日解析失敗：' + err.message);
+  } finally { holidayBusy.delete(year); }
+}
+function ensureHolidays() {
+  if (!showHolidays) return;
+  const last = addDays(viewStart, data.weeks * 7 - 1).getFullYear();
+  const years = new Set(HOLIDAY_SEED_YEARS);
+  for (let y = viewStart.getFullYear(); y <= last; y++) years.add(y);
+  years.forEach(loadHolidayYear);
+}
+function renderHolidayBtn() {
+  const b = $('holidayBtn');
+  b.classList.toggle('on', showHolidays); b.setAttribute('aria-pressed', String(showHolidays));
+}
+
 function render() {
+  ensureHolidays();
   const weeks = data.weeks;
   const todayStr = fmt(new Date());
   $('weeks').value = String(weeks);
   $('weeksVal').textContent = weeks;
   renderWeeksBtn();
   renderCryptUI();
+  renderHolidayBtn();
   const grid = $('grid'); grid.innerHTML = '';
 
   for (let w = 0; w < weeks; w++) {
@@ -504,9 +553,10 @@ function render() {
       if (ds < todayStr) cls.push('past');
       if (ds === todayStr) cls.push('today');
       if (d.getDate() === 1) cls.push('m1');
+      const hol = showHolidays && holidayCache[d.getFullYear()] && holidayCache[d.getFullYear()][ds];
       const ab = h('button', { class: 'addbtn', type: 'button', text: '＋', title: '新增事項' });
       const dlabel = h('div', { class: 'dlabel', title: '點一下新增事項' }, [
-        h('span', { class: 'dl-date', text: (d.getDate() === 1 ? d.getFullYear() + '/' : '') + (d.getMonth() + 1) + '/' + d.getDate() + '(' + WD[i] + ')' }), ab, h('span')]);
+        h('span', { class: 'dl-date', text: (d.getDate() === 1 ? d.getFullYear() + '/' : '') + (d.getMonth() + 1) + '/' + d.getDate() + '(' + WD[i] + ')' }), ab, h('span', { class: 'hol', text: hol || '' })]);
       dlabel.onclick = () => { adding = ds; render(); };   // 整列都是新增的點擊範圍
       const ul = h('ul', { class: 'list', style: 'margin-top:' + (L * LANE_H) + 'px' });
       data.items.filter(it => !it.end && it.date === ds).forEach(it => ul.appendChild(itemEl(it)));
@@ -745,6 +795,11 @@ $('prevWeek').onclick = () => { viewStart = addDays(viewStart, -7); render(); };
 $('nextWeek').onclick = () => { viewStart = addDays(viewStart, 7); render(); };
 $('today').onclick = () => { viewStart = mondayOf(new Date()); render(); };
 $('download').onclick = downloadFile;
+$('holidayBtn').onclick = () => {
+  showHolidays = !showHolidays;
+  try { localStorage.setItem(HOLIDAY_SHOW_KEY, showHolidays ? '1' : '0'); } catch (e) {}
+  render();
+};
 $('undo').onclick = undo;
 $('redo').onclick = redo;
 // 拖動滑桿只改畫面；要按旁邊的磁碟片按鈕，才把週數存進檔案（其他存檔動作不會順便存週數）
